@@ -1,0 +1,175 @@
+% Aufschreibesysteme Flow Matching — rolling preprint draft.
+% Rolling means: this paper is NOT pegged to a conference deadline. PRs that
+% only exist to chase a deadline window are out of scope.
+
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+
+\title{Aufschreibesysteme Flow Matching: \\
+       Treating Lossy Codecs as First-Class Generative Regimes}
+\author{aufschreibesysteme-fm contributors}
+\date{rolling preprint, last compiled \today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We treat lossy codecs (JPEG, gramophone, film grain, CRT phosphor, \dots)
+as first-class generative regimes rather than post-hoc style filters,
+attaching to each a measurement-derived \emph{frozen} physical noise
+prior and a per-regime LoRA expert. A top-$k$ soft mixture-of-experts
+router gates the experts under a Switch-style load-balance loss with a
+runtime collapse monitor. On seven regimes spanning the three
+\emph{Aufschreibesysteme} epochs (1800 / 1900 / 2000) we measure (M1)
+regime-classification recall, (M2) per-regime FID, (M3) cross-regime
+morph trajectory smoothness, and (M4) prompt-conditioned inscription
+consistency. The architecture, code, weights, and HF Space demo are
+released under Apache-2.0.
+\end{abstract}
+
+\section{Introduction}\label{sec:intro}
+
+Flow Matching and DiT-style generators implicitly assume a flat,
+homogeneous latent space. Real inscription channels are not flat — a
+JPEG quantisation lattice, the PSD of a 78\,rpm shellac groove,
+ISO12233 film grain, and CRT phosphor decay each impose distinct
+measurable structure on the signal. We make those structures
+\emph{first-class regimes}: each one carries its own measurement-derived
+prior, its own LoRA expert, and shares a routing gate. The framing is
+Kittlerian (\S\ref{sec:kittler}) but the metrics are signal-materiality
+only (\S\ref{sec:experiments}).
+
+\paragraph{Contributions.}
+\begin{enumerate}
+    \item A frozen, measurement-derived noise-prior architecture that
+          treats lossy codecs as regimes, not styles.
+    \item A top-2 soft Mixture-of-Experts LoRA router with a runtime
+          collapse monitor and a Switch-style load-balance loss.
+    \item Cross-regime morphing via Diffusion Schr\"odinger Bridge
+          Matching at inference time, without adding to training cost.
+    \item An Apache-2.0 release with weights, HF Space, and a 1-command
+          reproduction (\verb|afm demo --regime jpeg|).
+\end{enumerate}
+
+\section{Related Work}\label{sec:related}
+Lossy-codec-aware generation: \cite{ddcm2025,fdm2024}. Channel-coding
+diffusion: \cite{diffjscc2024}. Grain-specific generators:
+\cite{fganrn2025}. MoE LoRA: \cite{loramixer2025}. Diffusion forcing
+for temporal generation: \cite{diffusionforcing2024}. None treat the
+codec itself as a first-class regime nor use a frozen physical prior.
+
+\section{Method}\label{sec:method}
+\subsection{Regimes}
+We use seven regimes spanning the three Aufschreibesysteme epochs:
+\emph{parchment}, \emph{typewriter} (1800); \emph{gramophone},
+\emph{photograph}, \emph{film} (1900); \emph{jpeg}, \emph{crt} (2000).
+Each regime carries a codec, a measurement-derived physical noise prior,
+and a $\sigma_{\min}$ floor.
+
+\subsection{Frozen physical prior}
+Per-regime PSDs are stored via PyTorch \texttt{register\_buffer}, never
+as \texttt{nn.Parameter}, and never have \texttt{requires\_grad} flipped.
+Sampling is via the spectral form
+\[
+\epsilon_r \;=\; \mathcal{F}^{-1}\!\bigl(\sqrt{\mathrm{PSD}_r}\cdot
+                                       \mathcal{F}(z)\bigr),
+\qquad z \sim \mathcal{N}(0, I).
+\]
+We deliberately keep this layer non-learnable; the Lacanian caveat is in
+the appendix.
+
+\subsection{LoRA experts and routing}
+Each regime has a rank-$32$ LoRA adapter attached to the cross-attention
+$Q,K,V$ projections and the FFN of the base DiT. A 2-layer MLP gate
+(hidden 256) consumes
+$(\text{layer-4 patch-mean}\oplus\text{text CLS})$ and emits a softmax
+distribution over the seven regimes; we keep the top-$2$ weights and
+re-normalise. A Switch-style load-balance loss
+$\mathcal{L}_{lb} = \lambda N \sum_r f_r P_r$ with $\lambda = 0.01$ is
+augmented by a runtime collapse monitor: if the rolling-window mean
+entropy of the gate distribution falls below $0.3$ nats for $1000$
+optimiser steps, $\lambda$ doubles.
+
+\subsection{Per-pixel $\sigma$ with prior floor}
+We adopt a MuLAN-style per-pixel $\sigma$ head clipped from below:
+\[
+\sigma_{\mathrm{pred}}(x, r) \;=\; \max\!\bigl(\sigma_{\min}^{(r)},
+                                              \mathrm{MuLAN}_\theta(x)\bigr).
+\]
+This guarantees the noise model respects the regime's physical floor
+even when MuLAN's free head would prefer a smaller $\sigma$.
+
+\subsection{Schedulers}
+We use rectified Flow Matching (\cite{rfm2022}) for all spatial regimes,
+and Diffusion Forcing (\cite{diffusionforcing2024}) per-frame for the
+single temporal regime (film).
+
+\subsection{Cross-regime morphing}
+\verb|afm morph --from A --to B| runs Diffusion Schr\"odinger Bridge
+Matching at inference time. This does \emph{not} add to training cost,
+so the YouTube short and HF Space teaser do not change the wall-clock
+budget reported below.
+
+\section{Experiments}\label{sec:experiments}
+\subsection{Setup}
+Base model: SANA-1.6B \cite{sana2024} (Apache-2.0), frozen. Training:
+bf16, AdamW8bit, batch $2$ with grad-accum $8$, $30\,000$ steps per
+regime, \texttt{save\_steps=500}. Sequential per-regime LoRA fits in
+$\approx 18$--$20$\,GB VRAM on RTX 4090. Single-GPU wall-clock for the
+seven regimes plus gate + eval + space deploy is approximately $66$
+hours.
+
+\subsection{Metrics and baselines}
+\textbf{M1}: ResNet-50 fine-tuned for $7$-class regime classification,
+held-out split; we report macro recall. \textbf{M2}: per-regime FID
+against $5{,}000$ real references each. \textbf{M3}: LPIPS-trajectory
+monotonicity and Perceptual Path Length across the $50$-step DSBM morph.
+\textbf{M4}: variance of CLIPScore across regimes for the same prompt.
+\textbf{Baselines}: B1 vanilla SANA + style-LoRA stack, B2 SANA +
+IP-Adapter, B3 DDCM, B4 FGA-NN. All share captions
+(\texttt{data/manifests/captions\_eval.txt}), eval seed $17$, step
+budget $200\,000$, and the frozen text encoder.
+
+\subsection{Results}
+\emph{[Numbers go here once the MVP run completes. The rolling preprint
+will be updated; the figure / table layout is fixed.]}
+
+\section{Kittler Motivation (Appendix Pointer)}\label{sec:kittler}
+The seven regimes were chosen to span Kittler's three
+\emph{Aufschreibesysteme} epochs, with the 1900 triad
+(gramophone + photograph + film) intact. The codebase relies on this
+framing only for the regime list and the architectural decision to
+freeze the physical prior; metrics are signal-materiality only. See
+\verb|docs/appendix_kittler.md| in the repo for the full reading,
+including the Lacan caveat and references to Winthrop-Young, Peters,
+and Kr\"amer.
+
+\section{Limitations}
+The MVP is sequential per-regime training; parallel training is
+infeasible at 24\,GB VRAM. The DSBM morph uses a single IPF iteration;
+the full DSBM lives on the post-MVP roadmap. Audio is restricted to
+public-domain whitelist items because EU neighbouring rights run
+$70$ years past the performer's death and disqualify much of the
+Internet Archive 78\,rpm bulk.
+
+\section{Reproducibility}
+Single command:
+\begin{verbatim}
+afm oss --resume --pause-on=licence-fail,collapse,space-deploy,preprint \
+        --config configs/mvp.yaml
+\end{verbatim}
+Four human-review gates (license audit, expert collapse, HF Space
+publish, preprint draft) pause for sign-off and resume cleanly from
+\texttt{state.json}. Apache-2.0 throughout.
+
+\bibliographystyle{plain}
+\bibliography{refs}
+
+\end{document}

@@ -1,0 +1,4 @@
+path,license,sha256,source,whitelist_approved,note
+data/datasets/gramophone/wikimedia/edison_phonograph_demo_1888.flac,PD,,wikimedia_pd,true,1888 Edison cylinder — PD in all jurisdictions
+data/datasets/gramophone/wikimedia/early_brass_band_1899.flac,PD,,wikimedia_pd,true,1899 cylinder transfer
+data/datasets/gramophone/loc/spanish_american_war_speech_1898.flac,PD,,loc_american_memory_pd,true,LoC American Memory PD

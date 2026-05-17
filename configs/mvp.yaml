@@ -1,0 +1,189 @@
+# MVP configuration for `afm oss --resume --config configs/mvp.yaml`.
+# Drives all 8 pipeline steps. Designed for a single 24 GB GPU (RTX 4090 reference).
+#
+# DO NOT change `state.version` or `pipeline.gates` without bumping the schema
+# version in afm/state/manager.py — `--resume` reads these fields.
+
+state:
+  path: state.json
+  version: "0.2"
+
+pipeline:
+  # Step 0 env / 1 data / 2 lora / 3 gate / 4 eval / 5 release / 5.5 space / 6 arxiv
+  steps:
+    - id: "0"
+      name: env
+      gate: null
+    - id: "1"
+      name: data
+      gate: G1   # licence-fail
+    - id: "2"
+      name: lora
+      gate: null
+    - id: "3"
+      name: gate
+      gate: G2   # collapse
+    - id: "4"
+      name: eval
+      gate: null
+    - id: "5"
+      name: release
+      gate: null
+    - id: "5.5"
+      name: space
+      gate: G3   # space-deploy
+    - id: "6"
+      name: arxiv
+      gate: G4   # preprint  (optional, but wired)
+  gates:
+    G1: licence-fail
+    G2: collapse
+    G3: space-deploy
+    G4: preprint
+
+base_model:
+  default: "Efficient-Large-Model/Sana_1600M_1024px_diffusers"  # SANA-1.6B (Apache-2.0)
+  showcase: "black-forest-labs/FLUX.1-schnell"                  # showcase only — QLoRA
+  freeze: true
+  bf16: true
+  gradient_checkpointing: true
+
+regimes:
+  enabled:
+    - parchment
+    - typewriter
+    - gramophone
+    - photograph
+    - film
+    - jpeg
+    - crt
+  # Aufschreibesystem epochs (1800 / 1900 / 2000) — used only for documentation
+  # and figure ordering; the 7-class classifier sees them flat.
+  epoch_mapping:
+    parchment:  "1800"
+    typewriter: "1800"
+    gramophone: "1900"
+    photograph: "1900"
+    film:       "1900"
+    jpeg:       "2000"
+    crt:        "2000"
+
+lora:
+  rank: 32
+  alpha: 32
+  dropout: 0.05
+  target_modules:
+    # SANA linear-attn DiT cross-attn projections + FFN
+    - "to_q"
+    - "to_k"
+    - "to_v"
+    - "to_out.0"
+    - "ff.net.0.proj"
+    - "ff.net.2"
+
+router:
+  hidden: 256
+  top_k: 2
+  routing: soft     # NOT hard
+  feature_source: "layer4_patch_mean+text_cls"
+  load_balance:
+    lambda_init: 0.01
+    auto_double_on_collapse: true
+    collapse_entropy_threshold_nats: 0.3
+    collapse_window_steps: 1000
+
+mulan_sigma:
+  enabled: true
+  hidden: 128
+  clip_to_prior_min: true     # σ_pred = max(σ_min^(r), MuLAN_θ(x))
+
+physical_prior:
+  frozen: true                # measurement-derived, register_buffer
+  storage: "data/measurement/{regime}.npz"
+  # If a measurement file is missing at step 0, the env step fails with a clear error.
+  # Set to false only for synthetic-noise dry-runs (NOT real training).
+  fail_on_synthetic: true
+
+train:
+  optimizer: adamw8bit
+  lr: 1.0e-4
+  weight_decay: 0.01
+  batch_size: 2
+  grad_accum: 8
+  steps_per_regime: 30000
+  save_steps: 500              # caps mid-step crash loss to <= 30 minutes per regime
+  warmup_steps: 500
+  precision: bf16
+  seed: 1729
+  log_every: 50
+  eval_every: 2500
+  schedule:
+    type: flow_matching
+    sigma_min: 1.0e-4
+    rectify: true              # rectified FM
+  temporal:
+    enabled_regimes: ["film"]
+    diffusion_forcing: true
+    per_frame_sigma: true
+
+eval:
+  m1_classifier:
+    architecture: resnet50
+    finetune: true
+    num_classes: 7
+    target_recall: 0.85
+  m2_fid:
+    reference_per_regime: 5000
+    target: "<= baseline"
+  m3_morph_smoothness:
+    metric: "lpips_traj_monotonicity"
+    target: 0.90
+  m4_inscription_consistency:
+    metric: "clipscore_variance"
+    target: 0.05
+  baselines:
+    B1_vanilla_sana_style_lora: true
+    B2_sana_ip_adapter: true
+    B3_ddcm: true
+    B4_fga_nn: true
+  protocol:
+    captions: "data/manifests/captions_eval.txt"
+    eval_seed: 17
+    text_encoder_frozen: true
+    step_budget: 200000
+
+data:
+  audio:
+    sources:
+      - wikimedia_pd
+      - loc_american_memory_pd
+    whitelist: "data/manifests/audio_whitelist.csv"
+    bulk_internet_archive_78rpm: false      # EU neighbouring rights 70-year exclusion
+  images:
+    sources:
+      - kodak_photocd
+      - clic2020
+      - loc_pd
+      - wikimedia_cc0
+  fetch:
+    rate_limit_rps: 1
+    sha256: true
+    license_column_required: true
+
+release:
+  hub_repo: "hinanohart/aufschreibesysteme-fm"
+  tag_prefix: "v"
+  prefer_safetensors: true
+
+space:
+  hub_repo: "hinanohart/aufschreibesysteme-fm-demo"
+  app_file: "space/app.py"
+  teaser:
+    prompt: "a lighthouse at the edge of a stormy sea"
+    regimes: ["parchment", "typewriter", "gramophone", "photograph", "film", "jpeg", "crt"]
+    out: "space/assets/teaser.png"
+
+paper:
+  tex_root: "paper/main.tex"
+  bib: "paper/refs.bib"
+  rolling_preprint: true       # NOT conference-deadline-driven

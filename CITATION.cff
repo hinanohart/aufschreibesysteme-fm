@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+message: "If you use this software in academic work, please cite it as below."
+title: "Aufschreibesysteme Flow Matching"
+abstract: >-
+  A Flow Matching framework that treats lossy codecs (JPEG, film grain,
+  gramophone PSD, typewriter impact, parchment ink-bleed, CRT scanline)
+  as first-class generative regimes rather than post-hoc style transfer.
+  Each regime carries a frozen physical-noise prior measured from real
+  signal artefacts and is realised as a LoRA expert routed by a top-2
+  soft mixture gate.
+authors:
+  - alias: hinanohart
+    given-names: hinanohart
+repository-code: "https://github.com/hinanohart/aufschreibesysteme-fm"
+url: "https://github.com/hinanohart/aufschreibesysteme-fm"
+license: Apache-2.0
+version: 0.1.0-alpha
+date-released: 2026-05-18
+keywords:
+  - flow-matching
+  - diffusion-models
+  - lora
+  - mixture-of-experts
+  - media-archaeology
+  - signal-materiality
+  - kittler
+preferred-citation:
+  type: software
+  title: "Aufschreibesysteme Flow Matching"
+  authors:
+    - alias: hinanohart
+      given-names: hinanohart
+  year: 2026
+  url: "https://github.com/hinanohart/aufschreibesysteme-fm"
+  version: 0.1.0-alpha

@@ -1,0 +1,23 @@
+name: audit
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"   # Monday 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audio-license:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: audit audio whitelist
+        run: |
+          python scripts/audit_audio.py \
+            --manifest data/manifests/gramophone.csv \
+            --whitelist data/manifests/audio_whitelist.csv

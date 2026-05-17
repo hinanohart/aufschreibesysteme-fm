@@ -1,0 +1,67 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+build/
+dist/
+.venv/
+.env
+.envrc
+
+# torch / huggingface caches
+.cache/
+.huggingface/
+~/.cache/
+
+# ckpts (large)
+ckpt/
+checkpoints/
+*.safetensors
+*.bin
+*.pt
+*.pth
+
+# data (large, fetched via scripts)
+data/datasets/**/*.npz
+data/datasets/**/*.wav
+data/datasets/**/*.flac
+data/datasets/**/*.png
+data/datasets/**/*.jpg
+data/datasets/**/*.jpeg
+data/datasets/**/SHA256SUMS
+
+# eval outputs
+eval/**/*.json
+eval/**/figures/
+
+# state
+state.json
+state.json.bak
+
+# experiments (R8 退避先)
+experiments/_wip/
+
+# editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# notebook outputs
+.ipynb_checkpoints/
+
+# secrets — NEVER commit
+*.env
+secrets/
+*credentials*
+*.key
+*.pem
+
+# dev-only scaffolding (host-path PII / private memory paths)
+.monitor-*.md
+HANDOFF.md

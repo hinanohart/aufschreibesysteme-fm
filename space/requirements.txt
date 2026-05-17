@@ -1,0 +1,10 @@
+# HF Space requirements — kept minimal for fast Space boot.
+afm @ git+https://github.com/hinanohart/aufschreibesysteme-fm@main
+gradio>=4.40
+torch>=2.2
+diffusers>=0.30
+transformers>=4.43
+safetensors>=0.4
+peft>=0.11
+pillow>=10
+huggingface_hub>=0.24

@@ -4,6 +4,8 @@
 
 **Status:** research preview (rolling preprint, not deadline-driven). License: Apache-2.0.
 
+> **PyPI note:** The package name `afm` on PyPI is currently held by an unrelated project (Xiaoyu Zhai, v0.0.1). `pip install afm` will NOT install this package. PyPI publish will require renaming the package — tracked as a future task. Until then, install directly from source: `pip install git+https://github.com/hinanohart/aufschreibesysteme-fm`.
+
 **This is a resumable semi-auto pipeline with 4 explicit human-review gates.** It is not, and does not claim to be, "fully automatic" end-to-end — license audit, expert-collapse, HF Space publish, and preprint draft all pause for human confirmation by design.
 
 ---

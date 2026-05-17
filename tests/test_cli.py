@@ -14,7 +14,9 @@ def test_pause_on_parses_all_four_tokens() -> None:
 
 
 def test_pause_on_rejects_unknown_token() -> None:
-    with pytest.raises(Exception):
+    import typer
+
+    with pytest.raises(typer.BadParameter):
         _parse_pause_on("not-a-gate")
 
 

@@ -95,7 +95,18 @@ target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "N"]
-ignore = ["E501"]
+# B008  — typer.Option(default) is the idiomatic Typer pattern
+# N806  — math notation (A, B, N, P, Z) is conventional in FFT / linalg code
+# N812  — `torch.nn.functional as F` is canonical PyTorch
+ignore = ["E501", "B008", "N806", "N812"]
+
+[tool.ruff.lint.per-file-ignores]
+# importorskip MUST run before the symbol it gates is imported.
+"tests/test_oss_consistency.py" = ["E402"]
+# Notebook cells are top-level scripts; ordering / one-liner / unused-import
+# lints don't translate to interactive notebooks.
+"examples/*.ipynb" = ["I001", "F401", "E701", "E702"]
+"examples/*.py" = ["I001"]
 
 [tool.mypy]
 python_version = "3.10"

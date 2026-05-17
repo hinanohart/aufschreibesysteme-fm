@@ -26,7 +26,7 @@ def test_sigma_min_lookup_present_for_all_regimes() -> None:
         ["parchment", "typewriter", "gramophone", "photograph", "film", "jpeg", "crt"]
     )
     assert len(floors) == 7
-    for r, v in floors.items():
+    for _r, v in floors.items():
         assert v > 0.0
 
 

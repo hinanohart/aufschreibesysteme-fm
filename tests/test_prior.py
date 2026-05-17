@@ -14,10 +14,9 @@ from afm.core.physical_noise_prior import PhysicalNoisePrior
 
 def test_psd_buffers_are_not_parameters() -> None:
     prior = PhysicalNoisePrior(spatial_shape=(16, 16))
-    for name, p in prior.named_parameters():
+    for name, _p in prior.named_parameters():
         # Anything that ends up as Parameter would land here.
-        pytest_fail = f"prior introduced a Parameter named {name!r}"
-        raise AssertionError(pytest_fail)
+        raise AssertionError(f"prior introduced a Parameter named {name!r}")
 
 
 def test_psd_buffers_do_not_require_grad() -> None:

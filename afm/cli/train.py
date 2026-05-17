@@ -146,8 +146,8 @@ def _load_base(cfg: dict[str, Any]):
     than silently failing.
     """
     try:
+        import transformers  # noqa: F401 — availability check
         from diffusers import AutoPipelineForText2Image
-        from transformers import AutoModel, AutoTokenizer
     except ImportError as e:
         raise ImportError("training requires diffusers + transformers; install both") from e
     model_id = cfg["base_model"]["default"]

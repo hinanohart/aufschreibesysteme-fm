@@ -201,8 +201,7 @@ def train_one_regime(
 
 def _cycle(loader: Iterable):
     while True:
-        for x in loader:
-            yield x
+        yield from loader
 
 
 __all__ = ["TrainConfig", "train_one_regime"]

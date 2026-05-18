@@ -2,7 +2,7 @@
 
 > Lossy codecs as first-class generative regimes — a Flow Matching framework that treats JPEG / film grain / gramophone / vinyl PSD / typewriter / parchment / CRT as distinct, learnable signal-materiality regimes rather than post-hoc style transfer.
 
-**Status:** research preview (rolling preprint, not deadline-driven). License: Apache-2.0.
+**Status:** research preview (rolling preprint, not deadline-driven). License: MIT.
 
 **This is a resumable semi-auto pipeline with 4 explicit human-review gates.** It is not, and does not claim to be, "fully automatic" end-to-end — license audit, expert-collapse, HF Space publish, and preprint draft all pause for human confirmation by design.
 

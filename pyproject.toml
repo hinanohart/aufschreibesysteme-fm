@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Aufschreibesysteme Flow Matching — lossy codecs as first-class generative regimes."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "Apache-2.0" }
+license = { text = "MIT" }
 authors = [{ name = "aufschreibesysteme-fm contributors" }]
 keywords = [
     "flow-matching", "diffusion", "lora", "mixture-of-experts",
@@ -16,7 +16,7 @@ keywords = [
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
-    "License :: OSI Approved :: Apache Software License",
+    "License :: OSI Approved :: MIT License",
     "Intended Audience :: Science/Research",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",

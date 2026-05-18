@@ -3,7 +3,7 @@ afm @ git+https://github.com/hinanohart/aufschreibesysteme-fm@main
 gradio>=4.40
 torch>=2.2
 diffusers>=0.30
-transformers>=4.43
+transformers>=5.8.1
 safetensors>=0.4
 peft>=0.11
 pillow>=10

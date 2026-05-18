@@ -2,7 +2,7 @@
 
 > Lossy codecs as first-class generative regimes — a Flow Matching framework that treats JPEG / film grain / gramophone / vinyl PSD / typewriter / parchment / CRT as distinct, learnable signal-materiality regimes rather than post-hoc style transfer.
 
-**Status:** research preview (rolling preprint, not deadline-driven). License: Apache-2.0.
+**Status:** research preview (rolling preprint, not deadline-driven). License: MIT.
 
 > **PyPI note:** The package name `afm` on PyPI is currently held by an unrelated project (Xiaoyu Zhai, v0.0.1). `pip install afm` will NOT install this package. PyPI publish will require renaming the package — tracked as a future task. Until then, install directly from source: `pip install git+https://github.com/hinanohart/aufschreibesysteme-fm`.
 
@@ -55,7 +55,7 @@ Each regime is implemented in `afm/regimes/<name>.py` and exposes a `RegimeSpec`
 
 ## Architecture in one screen
 
-- **Base:** SANA-1.6B (Apache-2.0), frozen. Showcase: Flux-schnell-12B (Apache-2.0), QLoRA.
+- **Base:** SANA-1.6B (MIT), frozen. Showcase: Flux-schnell-12B (MIT), QLoRA.
 - **Experts:** LoRA rank-32 hooks on cross-attn (Q,K,V proj) and FFN up/down per regime.
 - **Routing:** 2-layer MLP gate (hidden=256) on (DiT layer-4 patch-mean ⊕ text CLS) → softmax → top-2 *soft*.
 - **Load balance:** `L_lb = λ·N·Σᵣ fᵣ Pᵣ`, λ=0.01. Gate entropy < 0.3 nats over 1 k steps → λ auto-doubles.
@@ -155,9 +155,9 @@ Identical caption set, 200 k step budget, frozen text encoder across all baselin
 
 ---
 
-## Acknowledging dependencies (all Apache-2.0 / MIT compatible)
+## Acknowledging dependencies (all MIT / MIT compatible)
 
-`diffusers`, `peft`, `accelerate`, `transformers`, `torch`, `safetensors`, `huggingface_hub`, `bitsandbytes` (MIT), `encodec` (MIT), `diffvg` (Apache-2.0), `pyrtools` (MIT), `gradio` (Apache-2.0), `httpx`, `pydantic`. Base model SANA-1.6B (Apache-2.0, NVlabs). The audit script `scripts/audit_audio.py` will fail loudly on anything unlisted.
+`diffusers`, `peft`, `accelerate`, `transformers`, `torch`, `safetensors`, `huggingface_hub`, `bitsandbytes` (MIT), `encodec` (MIT), `diffvg` (MIT), `pyrtools` (MIT), `gradio` (MIT), `httpx`, `pydantic`. Base model SANA-1.6B (MIT, NVlabs). The audit script `scripts/audit_audio.py` will fail loudly on anything unlisted.
 
 ---
 

@@ -13,7 +13,7 @@ authors:
     given-names: hinanohart
 repository-code: "https://github.com/hinanohart/aufschreibesysteme-fm"
 url: "https://github.com/hinanohart/aufschreibesysteme-fm"
-license: Apache-2.0
+license: MIT
 version: 0.1.0-alpha
 date-released: 2026-05-18
 keywords:

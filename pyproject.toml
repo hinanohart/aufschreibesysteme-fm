@@ -49,7 +49,7 @@ dependencies = [
     "soundfile>=0.12",
     # CLI / config / state
     "pydantic>=2.5",
-    "PyYAML>=6.0",
+    "PyYAML>=6.0.3",
     "typer>=0.25.1",
     "rich>=13.7",
     "httpx>=0.28.1",

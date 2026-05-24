@@ -30,7 +30,7 @@ dependencies = [
     # core stack
     "torch>=2.2,<3.0",
     "diffusers>=0.38.0",
-    "peft>=0.11",
+    "peft>=0.19.1",
     "accelerate>=1.13.0",
     "transformers>=5.8.1",
     "safetensors>=0.4",

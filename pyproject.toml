@@ -32,7 +32,7 @@ dependencies = [
     "diffusers>=0.38.0",
     "peft>=0.19.1",
     "accelerate>=1.13.0",
-    "transformers>=5.8.1",
+    "transformers>=5.9.0",
     "safetensors>=0.4",
     "huggingface_hub>=0.24",
     # quantisation / 8bit optimiser

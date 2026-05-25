@@ -29,7 +29,7 @@ classifiers = [
 dependencies = [
     # core stack
     "torch>=2.2,<3.0",
-    "diffusers>=0.30",
+    "diffusers>=0.38.0",
     "peft>=0.11",
     "accelerate>=1.13.0",
     "transformers>=5.8.1",

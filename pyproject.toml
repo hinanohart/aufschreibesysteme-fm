@@ -73,7 +73,7 @@ dev = [
 ]
 paper = [
     "matplotlib>=3.8",
-    "seaborn>=0.13",
+    "seaborn>=0.13.2",
 ]
 
 [project.scripts]

@@ -7,4 +7,4 @@ transformers>=5.9.0
 safetensors>=0.4
 peft>=0.19.1
 pillow>=10
-huggingface_hub>=0.24
+huggingface_hub>=1.17.0

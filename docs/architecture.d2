@@ -1,0 +1,64 @@
+direction: down
+explanation: |md
+  ### aufschreibesysteme-fm
+  **Lossy codecs as first-class generative regimes** — Flow Matching that treats JPEG / film grain / vinyl / CRT as distinct learnable signal-materiality regimes.
+| {near: top-center}
+
+prompt: "① Text Prompt" {shape: oval; style: {fill: "#6366f1"; font-color: "#fff"; stroke: "#4338ca"; bold: true; font-size: 18}}
+
+encoding: "Encoding" {
+  style: {fill: "#f0fdf4"; stroke: "#10b981"; font-color: "#065f46"; bold: true; font-size: 16}
+  encoder: "② Text Encoder"
+  *.style.fill: "#dcfce7"; *.style.font-color: "#065f46"
+}
+
+routing: "Routing & Experts" {
+  style: {fill: "#fffbeb"; stroke: "#f59e0b"; font-color: "#92400e"; bold: true; font-size: 16}
+  router: "③ RegimeRouter\n2-layer MLP gate"
+  lora_mgr: "④ ExpertLoRAManager\n7 LoRA adapters top-2 soft"
+  router -> lora_mgr: "④ select"
+  *.style.fill: "#fef3c7"; *.style.font-color: "#92400e"
+}
+
+noise_side: "Noise Conditioning" {
+  style: {fill: "#fdf2f8"; stroke: "#ec4899"; font-color: "#9d174e"; bold: true; font-size: 16}
+  noise_prior: "PhysicalNoisePrior\nfrozen PSD buffers"
+  sampler: "⑤ Initial Noise Sample"
+  noise_prior -> sampler: "⑤ draw"
+  *.style.fill: "#fdf2f8"; *.style.font-color: "#9d174e"
+}
+
+base_dit: "⑥ Base DiT\nSANA-1.6B frozen" {style: {fill: "#0ea5e9"; font-color: "#fff"; stroke: "#0369a1"; bold: true; font-size: 18}}
+
+output_zone: "Output" {
+  style: {fill: "#f0fdf4"; stroke: "#10b981"; font-color: "#065f46"; bold: true; font-size: 16}
+  mulan: "MuLANSigmaHead\nper-pixel sigma"
+  fm_sched: "⑦ FlowMatchingScheduler\nrectified FM ODE"
+  output: "⑧ Generated Image" {shape: cylinder}
+  mulan -> fm_sched: "⑦ schedule"
+  fm_sched -> output: "⑧ emit"
+  *.style.fill: "#dcfce7"; *.style.font-color: "#065f46"
+}
+
+morph_side: "Morphing (inference-time)" {
+  style: {fill: "#fdf2f8"; stroke: "#ec4899"; font-color: "#9d174e"; bold: true; font-size: 16}
+  dsbm: "DSBM Morpher"
+  morph_out: "Morphed Sequence" {shape: cylinder}
+  dsbm -> morph_out: "emit"
+  *.style.fill: "#fdf2f8"; *.style.font-color: "#9d174e"
+}
+
+prompt -> encoding.encoder: "① encode"
+encoding.encoder -> routing.router: "② route"
+routing.lora_mgr -> base_dit: "⑤ inject"
+noise_side.sampler -> base_dit: "⑤ seed"
+encoding.encoder -> base_dit: "⑤ condition"
+base_dit -> output_zone.mulan: "⑥ predict"
+base_dit -> morph_side.dsbm: "⑥ morph"
+
+legend: "Legend" {
+  near: bottom-center
+  style: {fill: "#f8fafc"; stroke: "#cbd5e1"; font-size: 13}
+  e: "● entry"; c: "● core"; p: "● processing"; b: "● external"; d: "● output"
+  e.style.font-color: "#4338ca"; c.style.font-color: "#0369a1"; p.style.font-color: "#10b981"; b.style.font-color: "#f59e0b"; d.style.font-color: "#ec4899"
+}

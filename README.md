@@ -12,21 +12,9 @@
 
 ## Architecture overview
 
-```mermaid
-flowchart TD
-    prompt[Text Prompt] --> encoder[Text Encoder]
-    encoder --> router[RegimeRouter<br>2-layer MLP gate]
-    router --> lora_mgr[ExpertLoRAManager<br>7 LoRA adapters top-2 soft]
-    noise_prior[PhysicalNoisePrior<br>frozen PSD buffers] --> sampler[Initial Noise Sample]
-    sampler --> base_dit[Base DiT<br>SANA-1.6B frozen]
-    lora_mgr --> base_dit
-    encoder --> base_dit
-    base_dit --> mulan[MuLANSigmaHead<br>per-pixel sigma]
-    mulan --> fm_sched[FlowMatchingScheduler<br>rectified FM ODE]
-    fm_sched --> output[Generated Image]
-    base_dit --> dsbm[DSBM Morpher<br>inference-time only]
-    dsbm --> morph_out[Morphed Sequence]
-```
+<div align="center">
+  <img src="docs/architecture.png" alt="aufschreibesysteme-fm architecture" width="840">
+</div>
 
 ---
 
@@ -207,3 +195,4 @@ Issues and PRs welcome. Two house rules:
 
 1. Do not embed R-number references (e.g. "R14") in commit messages — they reference an internal rule set, not user-facing context.
 2. Do not describe the pipeline as "fully automatic" / "permanent" anywhere user-facing — say "resumable semi-auto with 4 explicit human-review gates." <!-- honest:ok -->
+

@@ -15,16 +15,16 @@
 ```mermaid
 flowchart TD
     prompt[Text Prompt] --> encoder[Text Encoder]
-    encoder --> router[RegimeRouter\n2-layer MLP gate]
-    router --> lora_mgr[ExpertLoRAManager\n7 LoRA adapters top-2 soft]
-    noise_prior[PhysicalNoisePrior\nfrozen PSD buffers] --> sampler[Initial Noise Sample]
-    sampler --> base_dit[Base DiT\nSANA-1.6B frozen]
+    encoder --> router[RegimeRouter<br>2-layer MLP gate]
+    router --> lora_mgr[ExpertLoRAManager<br>7 LoRA adapters top-2 soft]
+    noise_prior[PhysicalNoisePrior<br>frozen PSD buffers] --> sampler[Initial Noise Sample]
+    sampler --> base_dit[Base DiT<br>SANA-1.6B frozen]
     lora_mgr --> base_dit
     encoder --> base_dit
-    base_dit --> mulan[MuLANSigmaHead\nper-pixel sigma]
-    mulan --> fm_sched[FlowMatchingScheduler\nrectified FM ODE]
+    base_dit --> mulan[MuLANSigmaHead<br>per-pixel sigma]
+    mulan --> fm_sched[FlowMatchingScheduler<br>rectified FM ODE]
     fm_sched --> output[Generated Image]
-    base_dit --> dsbm[DSBM Morpher\ninference-time only]
+    base_dit --> dsbm[DSBM Morpher<br>inference-time only]
     dsbm --> morph_out[Morphed Sequence]
 ```
 

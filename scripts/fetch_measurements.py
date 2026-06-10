@@ -33,6 +33,22 @@ REGIME_NAMES = (
 )
 
 
+def _safe_dest(out_dir: Path, filename: str) -> Path:
+    """Resolve ``filename`` under ``out_dir`` and reject path traversal.
+
+    Guards against manifest rows like ``../../etc/passwd`` or absolute paths
+    (``out_dir / "/abs"`` yields ``/abs`` in pathlib) writing outside the
+    intended dataset directory.
+    """
+    if not filename or "/" in filename or "\\" in filename or filename in (".", ".."):
+        raise ValueError(f"unsafe filename in manifest: {filename!r}")
+    base = out_dir.resolve()
+    dest = (base / filename).resolve()
+    if not dest.is_relative_to(base):
+        raise ValueError(f"filename escapes output directory: {filename!r}")
+    return dest
+
+
 def _sha256(path: Path) -> str:
     h = hashlib.sha256()
     with path.open("rb") as fh:
@@ -77,7 +93,7 @@ async def _fetch_manifest(regime: str, *, manifest_root: Path, out_root: Path) -
     async with httpx.AsyncClient(headers={"User-Agent": "afm-fetch/0.1"}) as client:
         tasks = []
         for row in rows:
-            dest = out_dir / row["filename"]
+            dest = _safe_dest(out_dir, row["filename"])
             tasks.append(_fetch_one(client, row["url"], dest, sem=sem))
         await asyncio.gather(*tasks)
 
@@ -85,7 +101,7 @@ async def _fetch_manifest(regime: str, *, manifest_root: Path, out_root: Path) -
     sha_path = out_dir / "SHA256SUMS"
     with sha_path.open("w", encoding="utf-8") as fh:
         for row in rows:
-            dest = out_dir / row["filename"]
+            dest = _safe_dest(out_dir, row["filename"])
             if dest.is_file():
                 fh.write(f"{_sha256(dest)}  {row['filename']}\n")
 

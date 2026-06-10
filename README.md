@@ -77,8 +77,8 @@ Each regime is implemented in `afm/regimes/<name>.py` and exposes a `RegimeSpec`
 
 ## How it works
 
-- **Base:** SANA-1.6B (MIT), frozen. Showcase: Flux-schnell-12B (MIT), QLoRA.
-- **Experts:** LoRA rank-32 hooks on cross-attn (Q,K,V proj) and FFN up/down per regime.
+- **Base:** SANA-1.6B (Apache-2.0), frozen. Showcase: Flux-schnell-12B (Apache-2.0), QLoRA.
+- **Experts:** LoRA rank-32 hooks on cross-attn (Q,K,V,out proj) and FFN up/down per regime.
 - **Routing:** 2-layer MLP gate (hidden=256) on (DiT layer-4 patch-mean ⊕ text CLS) → softmax → top-2 *soft*.
 - **Load balance:** `L_lb = λ·N·Σᵣ fᵣ Pᵣ`, λ=0.01. Gate entropy < 0.3 nats over 1 k steps → λ auto-doubles.
 - **Physical prior:** `register_buffer("psd_{regime}", measured_tensor)` — frozen, never trained. Sampling: `ε_r = F⁻¹(√PSDᵣ · F(z))`.
@@ -150,7 +150,7 @@ aufschreibesysteme-fm/
 │   ├── morph/     # DSBM cross-regime morphing
 │   ├── cli/       # afm oss / train / infer / morph / space-deploy / demo
 │   └── state/     # state.json atomic manager (v0.2 schema)
-├── configs/       # mvp.yaml, regimes/*.yaml
+├── configs/       # mvp.yaml
 ├── data/          # measurement scripts, datasets, license-audited manifests
 ├── scripts/       # fetch_measurements.py, audit_audio.py
 ├── eval/          # eval outputs and figures
@@ -179,7 +179,7 @@ Identical caption set, 200 k step budget, frozen text encoder across all baselin
 
 ## Acknowledging dependencies (all MIT / MIT compatible)
 
-`diffusers`, `peft`, `accelerate`, `transformers`, `torch`, `safetensors`, `huggingface_hub`, `bitsandbytes` (MIT), `encodec` (MIT), `diffvg` (MIT), `pyrtools` (MIT), `gradio` (MIT), `httpx`, `pydantic`. Base model SANA-1.6B (MIT, NVlabs). The audit script `scripts/audit_audio.py` will fail loudly on anything unlisted.
+`diffusers`, `peft`, `accelerate`, `transformers`, `torch`, `safetensors`, `huggingface_hub`, `bitsandbytes` (MIT), `encodec` (MIT), `diffvg` (MIT), `pyrtools` (MIT), `gradio` (MIT), `httpx`, `pydantic`. Base model SANA-1.6B (Apache-2.0, NVlabs). The audit script `scripts/audit_audio.py` will fail loudly on anything unlisted.
 
 ---
 

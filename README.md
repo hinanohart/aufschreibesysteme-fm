@@ -6,7 +6,35 @@
 
 > **PyPI note:** The package name `afm` on PyPI is currently held by an unrelated project (Xiaoyu Zhai, v0.0.1). `pip install afm` will NOT install this package. PyPI publish will require renaming the package — tracked as a future task. Until then, install directly from source: `pip install git+https://github.com/hinanohart/aufschreibesysteme-fm`.
 
-**This is a resumable semi-auto pipeline with 4 explicit human-review gates.** It is not, and does not claim to be, "fully automatic" end-to-end — license audit, expert-collapse, HF Space publish, and preprint draft all pause for human confirmation by design.
+**This is a resumable semi-auto pipeline with 4 explicit human-review gates.** It is not, and does not claim to be, "fully automatic" end-to-end — license audit, expert-collapse, HF Space publish, and preprint draft all pause for human confirmation by design. <!-- honest:ok -->
+
+---
+
+## Architecture overview
+
+```mermaid
+flowchart TD
+    prompt[Text Prompt] --> encoder[Text Encoder]
+    encoder --> router[RegimeRouter\n2-layer MLP gate]
+    router --> lora_mgr[ExpertLoRAManager\n7 LoRA adapters top-2 soft]
+    noise_prior[PhysicalNoisePrior\nfrozen PSD buffers] --> sampler[Initial Noise Sample]
+    sampler --> base_dit[Base DiT\nSANA-1.6B frozen]
+    lora_mgr --> base_dit
+    encoder --> base_dit
+    base_dit --> mulan[MuLANSigmaHead\nper-pixel sigma]
+    mulan --> fm_sched[FlowMatchingScheduler\nrectified FM ODE]
+    fm_sched --> output[Generated Image]
+    base_dit --> dsbm[DSBM Morpher\ninference-time only]
+    dsbm --> morph_out[Morphed Sequence]
+```
+
+---
+
+## What this is
+
+Current Flow Matching / DiT-style generators silently assume a flat, homogeneous latent space. Real inscription channels are not flat — a JPEG quantisation lattice, the PSD of a 78 rpm shellac groove, ISO12233 film grain, and CRT phosphor decay each impose distinct, measurable structure on the signal. This project treats each such structure as a **regime**, attaches a frozen physical-noise prior derived from measurement (never learned, never tuned), and routes between regimes with a top-2 soft mixture of LoRA experts.
+
+The framing is borrowed from Friedrich Kittler's media-theoretical concept of *Aufschreibesysteme* (discourse / inscription networks: 1800 / 1900 / 2000). It is used as motivation, not as evaluation: the metrics are entirely signal-materiality based.
 
 ---
 
@@ -31,13 +59,7 @@ That single command drives the full 8-step pipeline (env → data → lora × 7 
 
 ---
 
-## What this is
-
-We start from a single observation that current Flow Matching / DiT-style generators silently assume a flat, homogeneous latent space. Real inscription channels are not flat — a JPEG quantisation lattice, the PSD of a 78 rpm shellac groove, ISO12233 film grain, and CRT phosphor decay each impose distinct, measurable structure on the signal. We treat each such structure as a **regime**, attach a frozen physical-noise prior derived from measurement (never learned, never tuned), and route between regimes with a top-2 soft mixture of LoRA experts.
-
-The framing is borrowed from Friedrich Kittler's media-theoretical concept of *Aufschreibesysteme* (discourse / inscription networks: 1800 / 1900 / 2000). We use it as motivation, not as evaluation: the metrics are entirely signal-materiality based.
-
-### The 7 regimes
+## The 7 regimes
 
 | Regime | Aufschreibesystem | Codec | Physical noise prior |
 |---|---|---|---|
@@ -53,7 +75,7 @@ Each regime is implemented in `afm/regimes/<name>.py` and exposes a `RegimeSpec`
 
 ---
 
-## Architecture in one screen
+## How it works
 
 - **Base:** SANA-1.6B (MIT), frozen. Showcase: Flux-schnell-12B (MIT), QLoRA.
 - **Experts:** LoRA rank-32 hooks on cross-attn (Q,K,V proj) and FFN up/down per regime.
@@ -69,7 +91,7 @@ Full spec: see [`docs/architecture.md`](docs/architecture.md). Kittler motivatio
 
 ## The 4 human-review gates
 
-This pipeline is intentionally **not** fully automatic. The gates exist because each of these decisions is one we want a human to sign off on, not an unattended bot.
+This pipeline is intentionally **not** fully automatic. The gates exist because each of these decisions is one we want a human to sign off on, not an unattended bot. <!-- honest:ok -->
 
 | Gate | When | What needs human approval |
 |---|---|---|
@@ -98,7 +120,7 @@ test -f state.json && cat state.json | jq .current_step || echo "fresh"
 
 - It is not a "stylise like JPEG" filter. Lossy codecs are first-class regimes here, not post-hoc decorations. (`docs/signal_materiality.md` makes the technical distinction.)
 - It is not a Kittler implementation. We borrow the *Aufschreibesysteme* framing for motivation; metrics are signal-materiality only. See [Winthrop-Young, Peters, Krämer cross-check in appendix](docs/appendix_kittler.md).
-- It is not fully automatic. See "4 human-review gates" above.
+- It is not fully automatic. See "4 human-review gates" above. <!-- honest:ok -->
 
 ---
 
@@ -184,4 +206,4 @@ Until the preprint is on arXiv, a software citation is also fine:
 Issues and PRs welcome. Two house rules:
 
 1. Do not embed R-number references (e.g. "R14") in commit messages — they reference an internal rule set, not user-facing context.
-2. Do not describe the pipeline as "fully automatic" / "permanent" anywhere user-facing — say "resumable semi-auto with 4 explicit human-review gates."
+2. Do not describe the pipeline as "fully automatic" / "permanent" anywhere user-facing — say "resumable semi-auto with 4 explicit human-review gates." <!-- honest:ok -->
